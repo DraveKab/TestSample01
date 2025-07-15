@@ -1,16 +1,20 @@
 import { test, expect } from '@playwright/test';
+import { CheckoutPage } from '../resources/locator/CheckoutPage'; // ตรวจสอบเส้นทางให้ถูกต้อง
+import { userData, productSelector, url, expectedError } from '../resources/demo/testdata/testdata'; // ตรวจสอบเส้นทางให้ถูกต้อง
 
 test('ไม่กรอก Zip Code แล้วกด Continue ต้องแสดง Error', async ({ page }) => {
+  const checkout = new CheckoutPage(page);
+
   // Step 1: เปิดเว็บไซต์
-  await page.goto('https://www.saucedemo.com');
+  await page.goto(url.base);
 
   // Step 2: ล็อกอิน
-  await page.fill('#user-name', 'standard_user');
-  await page.fill('#password', 'secret_sauce');
+  await page.fill('#user-name', userData.username);
+  await page.fill('#password', userData.password);
   await page.click('#login-button');
 
   // Step 3: คลิก Add to cart ที่ T-Shirt
-  await page.click('[data-test="add-to-cart-test.allthethings()-t-shirt-(red)"]');
+  await page.click(productSelector.tShirtRed);
 
   // Step 4: เข้าหน้า Cart
   await page.click('.shopping_cart_link');
@@ -19,15 +23,14 @@ test('ไม่กรอก Zip Code แล้วกด Continue ต้องแ
   await page.click('[data-test="checkout"]');
 
   // Step 6: กรอก First Name
-  await page.fill('[data-test="firstName"]', 'John');
+  await checkout.firstName.fill('John');
 
   // Step 7: กรอก Last Name
-  await page.fill('[data-test="lastName"]', 'Doe');
+  await checkout.lastName.fill('Doe');
 
   // Step 8: ไม่กรอก Zip Code แล้วคลิก Continue
-  await page.click('[data-test="continue"]');
+  await checkout.clickContinue();
 
-  // Step 9: ตรวจสอบว่าแสดง Error ว่า Postal Code ต้องกรอก
-  await expect(page.locator('[data-test="error"]')).toBeVisible();
-  await expect(page.locator('[data-test="error"]')).toHaveText('Error: Postal Code is required');
+  // Step 9: ตรวจสอบว่าแสดง Error ว่า Postal Code ต้องกรอก โดยใช้ verifyErrorMessage
+  await checkout.verifyErrorMessage(expectedError.postalCodeRequired);
 });

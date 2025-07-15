@@ -1,39 +1,40 @@
 import { test, expect } from '@playwright/test';
+import { CheckoutPage } from '../resources/locator/CheckoutPage'; // ตรวจสอบเส้นทางให้ถูกต้อง
+import { userData, productSelector, url, expectedError } from '../resources/demo/testdata/testdata'; // ตรวจสอบเส้นทางให้ถูกต้อง
 
 test('ไม่กรอก Last Name แล้วกด Continue ต้องแสดง Error', async ({ page }) => {
-  // [1] เปิดเว็บไซต์
-  await page.goto('https://www.saucedemo.com');
+  const checkout = new CheckoutPage(page);
 
-  // [2] ล็อกอิน
-  await page.fill('#user-name', 'standard_user');
-  await page.fill('#password', 'secret_sauce');
+  // 1. เปิดเว็บไซต์
+  await page.goto(url.base);
+
+  // 2. ล็อกอิน
+  await page.fill('#user-name', userData.username);
+  await page.fill('#password', userData.password);
   await page.click('#login-button');
 
-  // [3] คลิก Add to Cart สินค้า T-Shirt
-  await page.click('[data-test="add-to-cart-test.allthethings()-t-shirt-(red)"]');
+  // 3. คลิก Add to Cart สินค้า T-Shirt
+  await page.click(productSelector.tShirtRed);
 
-  // [4] คลิก Cart
+  // 4. คลิก Cart
   await page.click('.shopping_cart_link');
 
-  // [5] คลิก Checkout
+  // 5. คลิก Checkout
   await page.click('[data-test="checkout"]');
 
-  // [6] กรอกเฉพาะ First Name (เว้น Last Name และ Zip Code)
-  await page.fill('[data-test="firstName"]', 'John');
+  // 6. กรอกเฉพาะ First Name (เว้น Last Name และ Zip Code)
+  await checkout.firstName.fill('John');
 
-  // [7] คลิก Continue
-  await page.click('[data-test="continue"]');
+  // 7. คลิก Continue
+  await checkout.clickContinue();
 
-  // [8.1] ตรวจสอบ Error: Last Name จำเป็นต้องกรอก
-  await expect(page.locator('[data-test="error"]')).toBeVisible();
-  await expect(page.locator('[data-test="error"]')).toHaveText('Error: Last Name is required');
+  // 8. ตรวจสอบ Error: Last Name จำเป็นต้องกรอก โดยใช้ verifyErrorMessage
+  await checkout.verifyErrorMessage(expectedError.lastNameRequired);
 
-  // [9] กรอก Last Name แล้วกด Continue (ยังไม่กรอก Zip)
-  await page.fill('[data-test="lastName"]', 'Doe');
-  await page.click('[data-test="continue"]');
+  // 9. กรอก Last Name แล้วกด Continue (ยังไม่กรอก Zip)
+  await checkout.lastName.fill('Doe');
+  await checkout.clickContinue();
 
-  // [10] ตรวจสอบ Error: Zip Code จำเป็นต้องกรอก
-  await expect(page.locator('[data-test="error"]')).toBeVisible();
-  await expect(page.locator('[data-test="error"]')).toHaveText('Error: Postal Code is required');
-
+  // 10. ตรวจสอบ Error: Zip Code จำเป็นต้องกรอก โดยใช้ verifyErrorMessage
+  await checkout.verifyErrorMessage(expectedError.postalCodeRequired);
 });

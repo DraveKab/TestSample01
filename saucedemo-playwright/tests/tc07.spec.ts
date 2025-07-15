@@ -1,28 +1,34 @@
 import { test, expect } from '@playwright/test';
+import { CheckoutPage } from '../resources/locator/CheckoutPage';
+import { userData, productSelector, url } from '../resources/demo/testdata/testdata';
 
-test('กรอก ZIP Code เป็นตัวอักษรแล้วระบบยังยอมให้เข้า Checkout', async ({ page }) => {
-  await page.goto('https://www.saucedemo.com');
+test('tc07: กรอก ZIP Code เป็นตัวอักษร → ยอมให้ไปต่อหน้า Overview ได้', async ({ page }) => {
+  const checkout = new CheckoutPage(page);
 
-  // ล็อกอิน
-  await page.fill('#user-name', 'standard_user');
-  await page.fill('#password', 'secret_sauce');
+  // [1] เข้าสู่ระบบ
+  await page.goto(url.base);
+  await page.fill('#user-name', userData.username);
+  await page.fill('#password', userData.password);
   await page.click('#login-button');
 
-  // Add T-Shirt เข้า cart
-  await page.click('[data-test="add-to-cart-test.allthethings()-t-shirt-(red)"]');
+  // [2] เพิ่มสินค้า T-Shirt
+  await page.click(productSelector.tShirtRed);
+
+  // [3] ไปที่ตะกร้า และกด Checkout
   await page.click('.shopping_cart_link');
   await page.click('[data-test="checkout"]');
 
-  // กรอกข้อมูลทั้งหมดเป็นพิมพ์ใหญ่
-  await page.fill('[data-test="firstName"]', 'AAA');
-  await page.fill('[data-test="lastName"]', 'AAA');
-  await page.fill('[data-test="postalCode"]', 'AAA'); // ❌ Zip ไม่ใช่ตัวเลข
+  // [4] กรอก First, Last, และ Zip (เป็นตัวอักษรล้วน)
+  await checkout.firstName.fill('John');
+  await checkout.lastName.fill('Doe');
+  await checkout.postalCode.fill('aaa'); // ← ตัวอักษร ไม่ใช่ตัวเลข
 
-  await page.click('[data-test="continue"]');
+  // [5] กด Continue
+  await checkout.clickContinue();
 
-  // ❗️ระบบยังยอมให้เข้าไปต่อ
+  // [6] ✅ ระบบให้ไปหน้าถัดไปได้
   await expect(page).toHaveURL(/checkout-step-two/);
 
-  // สินค้าปรากฏ
-  await expect(page.locator('.cart_item')).toBeVisible();
+  // [7] ตรวจว่าสินค้ายังอยู่
+  await expect(page.locator('.cart_item')).toHaveCount(1);
 });

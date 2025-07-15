@@ -1,21 +1,25 @@
 import { test, expect } from '@playwright/test';
+import { CheckoutPage } from '../resources/locator/CheckoutPage';
+import { userData, productSelector, url } from '../resources/demo/testdata/testdata';
 
 test('เพิ่มสินค้าทั้งหมด 6 ชิ้นและตรวจสอบที่หน้า Checkout Overview', async ({ page }) => {
+  const checkout = new CheckoutPage(page);
+
   // 1. เข้าสู่เว็บไซต์
-  await page.goto('https://www.saucedemo.com');
+  await page.goto(url.base);
 
   // 2. ล็อกอิน
-  await page.fill('#user-name', 'standard_user');
-  await page.fill('#password', 'secret_sauce');
+  await page.fill('#user-name', userData.username);
+  await page.fill('#password', userData.password);
   await page.click('#login-button');
 
-  // 3. เพิ่มสินค้าทั้งหมด 6 รายการลงในตะกร้า
-  await page.click('[data-test="add-to-cart-sauce-labs-backpack"]');                // Backpack
-  await page.click('[data-test="add-to-cart-sauce-labs-bike-light"]');              // Light
-  await page.click('[data-test="add-to-cart-sauce-labs-bolt-t-shirt"]');            // T-Shirt
-  await page.click('[data-test="add-to-cart-sauce-labs-fleece-jacket"]');           // Jacket
-  await page.click('[data-test="add-to-cart-sauce-labs-onesie"]');                  // Onesie
-  await page.click('[data-test="add-to-cart-test.allthethings()-t-shirt-(red)"]');  // T-Shirt (Red)
+  // 3. เพิ่มสินค้าทั้งหมด 6 รายการลงในตะกร้า (ใช้ selectors จาก testData.ts)
+  await page.click(productSelector.sauceLabsBackpack);
+  await page.click(productSelector.sauceLabsBikeLight);
+  await page.click(productSelector.sauceLabsBoltTShirt);
+  await page.click(productSelector.sauceLabsFleeceJacket);
+  await page.click(productSelector.sauceLabsOnesie);
+  await page.click(productSelector.tShirtRed);
 
   // 4. เข้าหน้า Cart
   await page.click('.shopping_cart_link');
@@ -24,19 +28,21 @@ test('เพิ่มสินค้าทั้งหมด 6 ชิ้นแ�
   await page.click('[data-test="checkout"]');
 
   // 6–8. กรอกข้อมูลลูกค้า
-  await page.fill('[data-test="firstName"]', 'John');
-  await page.fill('[data-test="lastName"]', 'Doe');
-  await page.fill('[data-test="postalCode"]', '12345');
+  await checkout.firstName.fill('John');
+  await checkout.lastName.fill('Doe');
+  await checkout.postalCode.fill('12345');
 
   // 9. ดำเนินการต่อไปหน้า Checkout Overview
-  await page.click('[data-test="continue"]');
+  await checkout.clickContinue();
 
-  // 10. ตรวจสอบว่ามีสินค้าครบ 6 ชิ้นแสดงอยู่
-  const cartItems = page.locator('.cart_item');
-  await expect(cartItems).toHaveCount(6); //  ต้องแสดงครบ 6 รายการ
-
-  // ตรวจสอบว่าหน้าปัจจุบันเป็น checkout overview
+  // 10. ตรวจสอบว่าหน้าปัจจุบันเป็น checkout overview
   await expect(page).toHaveURL(/checkout-step-two/);
+  // ตรวจสอบว่าไม่มี error box แสดงขึ้น
+  await expect(checkout.errorBox).not.toBeVisible();
+
+  // ตรวจสอบว่ามีสินค้าครบ 6 ชิ้นแสดงอยู่
+  const cartItems = page.locator('.cart_item');
+  await expect(cartItems).toHaveCount(6);
 
   // ตรวจสอบว่ามีราคารวมแสดง
   await expect(page.locator('.summary_total_label')).toBeVisible();
