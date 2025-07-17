@@ -1,34 +1,40 @@
 import { test, expect } from '@playwright/test';
 import { CheckoutPage } from '../resources/locator/CheckoutPage';
-import { userData, productSelector, url } from '../resources/demo/testdata/testdata';
+import { LoginPage } from '../resources/locator/LoginPage';
+import { ProductsPage } from '../resources/locator/ProductsPage';
+import { CartPage } from '../resources/locator/CartPage';
+import { userData, productSelector, url, expectedError } from '../resources/demo/testdata/testData';
 
 test('tc07: กรอก ZIP Code เป็นตัวอักษร → ยอมให้ไปต่อหน้า Overview ได้', async ({ page }) => {
-  const checkout = new CheckoutPage(page);
+  // 1. เปิดเว็บและล็อกอิน
+  await LoginPage.goto(page, url.base);
+  await LoginPage.login(page, userData.username, userData.password);
+  await ProductsPage.verifyOnProductsPage(page);
 
-  // [1] เข้าสู่ระบบ
-  await page.goto(url.base);
-  await page.fill('#user-name', userData.username);
-  await page.fill('#password', userData.password);
-  await page.click('#login-button');
+  // 2. เพิ่มสินค้าและไปหน้าตะกร้า
+  await ProductsPage.addProductToCart(page, productSelector.tShirtRed);
+  await ProductsPage.gotoCart(page);
+  await CartPage.verifyOnCartPage(page);
 
-  // [2] เพิ่มสินค้า T-Shirt
-  await page.click(productSelector.tShirtRed);
+  // 3. ไปหน้า Checkout
+  await CartPage.clickCheckout(page);
+  await CheckoutPage.verifyOnCheckoutPage(page);
 
-  // [3] ไปที่ตะกร้า และกด Checkout
-  await page.click('.shopping_cart_link');
-  await page.click('[data-test="checkout"]');
+  // 4. กรอกข้อมูล First Name, Last Name และ Postal Code (เป็นตัวอักษร)
+  const checkoutFields = CheckoutPage.getFields(page);
+  await checkoutFields.firstName.fill('John');
+  await checkoutFields.lastName.fill('Doe');
+  await checkoutFields.postalCode.fill('aaa'); // ตัวอักษร ไม่ใช่ตัวเลข
 
-  // [4] กรอก First, Last, และ Zip (เป็นตัวอักษรล้วน)
-  await checkout.firstName.fill('John');
-  await checkout.lastName.fill('Doe');
-  await checkout.postalCode.fill('aaa'); // ← ตัวอักษร ไม่ใช่ตัวเลข
+  // 5. กด Continue
+  await CheckoutPage.clickContinue(page);
 
-  // [5] กด Continue
-  await checkout.clickContinue();
+  // 6. ตรวจสอบว่าระบบให้ไปหน้า Checkout Overview (checkout-step-two)
+  await CheckoutPage.verifyOnCheckoutOverviewPage(page);
 
-  // [6] ✅ ระบบให้ไปหน้าถัดไปได้
-  await expect(page).toHaveURL(/checkout-step-two/);
+  // 7. ตรวจสอบว่าไม่มี Error แสดง
+  await CheckoutPage.verifyNoErrorMessage(page);
 
-  // [7] ตรวจว่าสินค้ายังอยู่
-  await expect(page.locator('.cart_item')).toHaveCount(1);
+ // 8. ตรวจสอบว่ายังมีสินค้าในหน้าสรุป (verify จำนวนสินค้า)
+await CheckoutPage.verifyCartItemCount(page, 1);
 });

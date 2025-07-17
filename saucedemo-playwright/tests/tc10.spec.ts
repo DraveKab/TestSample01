@@ -1,40 +1,43 @@
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../resources/locator/LoginPage';
+import { ProductsPage } from '../resources/locator/ProductsPage';
+import { CartPage } from '../resources/locator/CartPage';
 import { CheckoutPage } from '../resources/locator/CheckoutPage';
-import { userData, productSelector, url } from '../resources/demo/testdata/testdata';
+import { userData, productSelector, url } from '../resources/demo/testdata/testData';
 
-test('กรอกชื่อผสม (อังกฤษ+ไทย+พิเศษ) แล้วระบบยังให้ผ่านหน้า Checkout', async ({ page }) => {
-  const checkout = new CheckoutPage(page);
-
+test('กรอกชื่อผสม (อังกฤษ+ไทย) และระบบยังให้ผ่านหน้า Checkout', async ({ page }) => {
   // 1. เข้าเว็บไซต์
-  await page.goto(url.base);
+  await LoginPage.goto(page, url.base);
 
   // 2. Login
-  await page.fill('#user-name', userData.username);
-  await page.fill('#password', userData.password);
-  await page.click('#login-button');
+  await LoginPage.login(page, userData.username, userData.password);
 
-  // 3. Add to cart
-  await page.click(productSelector.tShirtRed);
-  await page.click('.shopping_cart_link');
+  // 3. เพิ่มสินค้าเข้าตะกร้า
+  await ProductsPage.addProductToCart(page, productSelector.tShirtRed);
 
-  // 4. Checkout
-  await page.click('[data-test="checkout"]');
+  // 4. ไปหน้าตะกร้า
+  await ProductsPage.gotoCart(page);
+  await CartPage.verifyOnCartPage(page);
 
-  // 5–7. กรอกข้อมูลผสม
-  // หมายเหตุ: Saucedemo.com ยอมรับอักขระผสมใน First Name และ Last Name โดยไม่มีการ Validation
-  // Postal Code ถูกกรอกด้วยตัวเลขที่ถูกต้องเพื่อให้ Test Case ผ่านตามชื่อ
-  await checkout.firstName.fill('aaa');   // อังกฤษ
-  await checkout.lastName.fill('กกก');    // ไทย
-  await checkout.postalCode.fill('12345'); // ตัวเลขที่ถูกต้อง
+  // 5. ไปหน้า Checkout
+  await CartPage.clickCheckout(page);
+  await CheckoutPage.verifyOnCheckoutPage(page);
 
-  // 8. คลิก Continue
-  await checkout.clickContinue();
+  // 6. กรอกชื่อผสม: อังกฤษ + ไทย + กรอก Postal Code ที่ถูกต้อง
+  const checkoutFields = CheckoutPage.getFields(page);
+  await checkoutFields.firstName.fill('aaa');    // อังกฤษ
+  await checkoutFields.lastName.fill('กกก');     // ไทย
+  await checkoutFields.postalCode.fill('12345'); // ตัวเลขที่ถูกต้อง
 
-  // 9. ตรวจสอบว่ายังเข้าหน้า Checkout Overview ได้
-  await expect(page).toHaveURL(/checkout-step-two/);
-  // ตรวจสอบว่าไม่มี error box แสดงขึ้น (ยืนยันว่าไม่มีการ Validation ที่ทำให้ติด)
-  await expect(checkout.errorBox).not.toBeVisible();
+  // 7. คลิก Continue
+  await CheckoutPage.clickContinue(page);
 
-  // 10. มีรายละเอียดสินค้าแสดง
-  await expect(page.locator('.cart_item')).toBeVisible();
+  // 8. ตรวจสอบว่าเข้าสู่หน้า Checkout Overview ได้สำเร็จ
+  await CheckoutPage.verifyOnCheckoutOverviewPage(page);
+
+  // 9. ตรวจสอบว่าไม่มี Error แสดงขึ้น
+  await CheckoutPage.verifyNoErrorMessage(page);
+
+  // 10. ตรวจสอบว่าสินค้าแสดงอยู่ในหน้าสรุป
+  await CheckoutPage.verifyCartSummaryVisible(page);
 });

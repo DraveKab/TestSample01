@@ -1,43 +1,34 @@
-import { test, expect } from '@playwright/test';
-import { CheckoutPage } from '../resources/locator/CheckoutPage'; // ตรวจสอบเส้นทางให้ถูกต้อง
-import { userData, productSelector, url } from '../resources/demo/testdata/testdata'; // ตรวจสอบเส้นทางให้ถูกต้อง
+import { test } from '@playwright/test';
+import { CheckoutPage } from '../resources/locator/CheckoutPage';
+import { LoginPage } from '../resources/locator/LoginPage';
+import { ProductsPage } from '../resources/locator/ProductsPage';
+import { CartPage } from '../resources/locator/CartPage';
+import { userData, productSelector, url, expectedError } from '../resources/demo/testdata/testData';
 
-test('กรอกข้อมูลครบและไปหน้า Checkout ได้สำเร็จ', async ({ page }) => {
-  const checkout = new CheckoutPage(page);
+test('ไม่กรอก Zip Code แล้วกด Continue ต้องแสดง Error', async ({ page }) => {
+  // 1. เปิดเว็บและล็อกอิน
+  await LoginPage.goto(page, url.base);
+  await LoginPage.login(page, userData.username, userData.password);
+  await ProductsPage.verifyOnProductsPage(page);
 
-  // Step 1: เปิดเว็บ
-  await page.goto(url.base);
+  // 2. เพิ่มสินค้าและไปหน้าตะกร้า
+  await ProductsPage.addProductToCart(page, productSelector.tShirtRed);
+  await ProductsPage.gotoCart(page);
+  await CartPage.verifyOnCartPage(page);
 
-  // Step 2: Login
-  await page.fill('#user-name', userData.username);
-  await page.fill('#password', userData.password);
-  await page.click('#login-button');
+  // 3. ไปหน้า Checkout
+  await CartPage.clickCheckout(page);
+  await CheckoutPage.verifyOnCheckoutPage(page);
 
-  // Step 3: Add T-Shirt เข้า cart
-  await page.click(productSelector.tShirtRed);
+  // 4. กรอก First Name, Last Name (ไม่กรอก Zip Code)
+  const fields = CheckoutPage.getFields(page);
+  await fields.firstName.fill('John');
+  await fields.lastName.fill('Doe');
 
-  // Step 4: เข้าหน้า Cart
-  await page.click('.shopping_cart_link');
+  // 5. กด Continue
+  await CheckoutPage.clickContinue(page);
 
-  // Step 5: คลิก Checkout
-  await page.click('[data-test="checkout"]');
-
-  // Step 6: กรอก First Name
-  await checkout.firstName.fill('John');
-
-  // Step 7: กรอก Last Name
-  await checkout.lastName.fill('Doe');
-
-  // Step 8: กรอก Zip Code
-  await checkout.postalCode.fill('12345');
-
-  // Step 9: คลิก Continue
-  await checkout.clickContinue();
-
-  // Step 10: ตรวจสอบว่าอยู่ที่หน้าสรุปสินค้า (checkout-step-two)
-  await expect(page).toHaveURL(/checkout-step-two/);
-
-  // ตรวจสอบว่ามีรายละเอียดสินค้า (locator อิงจาก class ที่ใช้จริง)
-  await expect(page.locator('.cart_item')).toBeVisible(); // รายการสินค้า
-  await expect(page.locator('.summary_total_label')).toBeVisible(); // ราคารวม
+  // 6. ตรวจสอบ Error ว่า Zip Code ต้องกรอก และยังอยู่หน้า Checkout
+  await CheckoutPage.verifyErrorMessage(page, expectedError.postalCodeRequired);
+  await CheckoutPage.verifyOnCheckoutPage(page);
 });
