@@ -1,17 +1,18 @@
 import { Page, expect } from '@playwright/test';
+import * as locator from './index'; // นำเข้า locator กลาง
 
 export const ProductsPage = {
   async addProductToCart(page: Page, productSelector: string) {
-    await page.click(productSelector);
+    await page.locator(productSelector).click();
   },
 
   async gotoCart(page: Page) {
-    await page.click('.shopping_cart_link');
+    await page.locator(locator.cart_link).click(); // ใช้ locator จากไฟล์กลาง
     await expect(page).toHaveURL(/.*cart\.html/, { timeout: 5000 });
   },
 
   async verifyOnProductsPage(page: Page) {
     await expect(page).toHaveURL(/.*inventory\.html/, { timeout: 5000 });
-    await expect(page.locator('.title')).toHaveText('Products', { timeout: 5000 });
+    await expect(page.locator(locator.title_products)).toHaveText('Products', { timeout: 5000 });
   },
 };

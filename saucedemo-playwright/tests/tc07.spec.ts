@@ -4,27 +4,29 @@ import { LoginPage } from '../resources/locator/LoginPage';
 import { ProductsPage } from '../resources/locator/ProductsPage';
 import { CartPage } from '../resources/locator/CartPage';
 import { userData, productSelector, url, expectedError } from '../resources/demo/testdata/testData';
+import * as locator from '../resources/locator/index'; // <== เพิ่มบรรทัดนี้
 
 test('tc07: กรอก ZIP Code เป็นตัวอักษร → ยอมให้ไปต่อหน้า Overview ได้', async ({ page }) => {
   // 1. เปิดเว็บและล็อกอิน
-  await LoginPage.goto(page, url.base);
-  await LoginPage.login(page, userData.username, userData.password);
-  await ProductsPage.verifyOnProductsPage(page);
+  await page.goto(url.base);
+    await page.locator(locator.input_username).fill(userData.username);
+    await page.locator(locator.input_password).fill(userData.password);
+    await page.locator(locator.btn_login).click();
 
   // 2. เพิ่มสินค้าและไปหน้าตะกร้า
-  await ProductsPage.addProductToCart(page, productSelector.tShirtRed);
+  await ProductsPage.addProductToCart(page, locator.btn_add_tShirtRed);
   await ProductsPage.gotoCart(page);
   await CartPage.verifyOnCartPage(page);
 
+
   // 3. ไปหน้า Checkout
-  await CartPage.clickCheckout(page);
-  await CheckoutPage.verifyOnCheckoutPage(page);
+  await page.locator(locator.btn_checkout).click();
+      await CheckoutPage.verifyOnCheckoutPage(page);
 
   // 4. กรอกข้อมูล First Name, Last Name และ Postal Code (เป็นตัวอักษร)
-  const checkoutFields = CheckoutPage.getFields(page);
-  await checkoutFields.firstName.fill('John');
-  await checkoutFields.lastName.fill('Doe');
-  await checkoutFields.postalCode.fill('aaa'); // ตัวอักษร ไม่ใช่ตัวเลข
+  page.locator(locator.input_firstName).fill('John');
+  page.locator(locator.input_lastName).fill('Doe');
+  page.locator(locator.input_postalCode).fill('aaa'); // ตัวอักษร ไม่ใช่ตัวเลข
 
   // 5. กด Continue
   await CheckoutPage.clickContinue(page);

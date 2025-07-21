@@ -4,44 +4,44 @@ import { ProductsPage } from '../resources/locator/ProductsPage';
 import { CartPage } from '../resources/locator/CartPage';
 import { CheckoutPage } from '../resources/locator/CheckoutPage';
 import { userData, productSelector, url } from '../resources/demo/testdata/testData';
+import * as locator from '../resources/locator/index'; // <== เพิ่มบรรทัดนี้
 
 test('เพิ่มสินค้า 2 ชิ้นแล้วเข้าสู่หน้า Checkout สำเร็จ พร้อมแสดงสินค้า', async ({ page }) => {
   // 1. เข้าเว็บไซต์
-  await LoginPage.goto(page, url.base);
+  await page.goto(url.base);
+    await page.locator(locator.input_username).fill(userData.username);
+    await page.locator(locator.input_password).fill(userData.password);
+    await page.locator(locator.btn_login).click();
 
-  // 2. ล็อกอิน
-  await LoginPage.login(page, userData.username, userData.password);
+  // 2. เพิ่มสินค้า 2 ชิ้น
+  await ProductsPage.addProductToCart(page, locator.btn_add_tShirtRed);
+  await ProductsPage.addProductToCart(page, locator.btn_add_sauceLabsBackpack);
 
-  // 3. เพิ่มสินค้า 2 ชิ้น
-  await ProductsPage.addProductToCart(page, productSelector.tShirtRed);
-  await ProductsPage.addProductToCart(page, productSelector.sauceLabsBackpack);
-
-  // 4. เข้า Cart
+  // 3. เข้า Cart
   await ProductsPage.gotoCart(page);
   await CartPage.verifyOnCartPage(page);
 
-  // 5. คลิก Checkout
-  await CartPage.clickCheckout(page);
-  await CheckoutPage.verifyOnCheckoutPage(page);
+  // 4. คลิก Checkout
+  await page.locator(locator.btn_checkout).click();
+      await CheckoutPage.verifyOnCheckoutPage(page);
 
-  // 6. กรอกข้อมูลลูกค้า
-  const checkoutFields = CheckoutPage.getFields(page);
-  await checkoutFields.firstName.fill('John');
-  await checkoutFields.lastName.fill('Doe');
-  await checkoutFields.postalCode.fill('12345');
+  // 5. กรอกข้อมูลลูกค้า
+  page.locator(locator.input_firstName).fill('John');
+  page.locator(locator.input_lastName).fill('Doe');
+  page.locator(locator.input_postalCode).fill('12345');
 
-  // 7. คลิก Continue
+  // 6. คลิก Continue
   await CheckoutPage.clickContinue(page);
 
-  // 8. ตรวจสอบว่าอยู่ในหน้า Overview
+  // 7. ตรวจสอบว่าอยู่ในหน้า Overview
   await CheckoutPage.verifyOnCheckoutOverviewPage(page);
 
-  // 9. ตรวจสอบว่าไม่มี Error แสดง
+  // 8. ตรวจสอบว่าไม่มี Error แสดง
   await CheckoutPage.verifyNoErrorMessage(page);
 
-  // 10. ตรวจสอบว่ามีสินค้าทั้ง 2 ชิ้นแสดงอยู่ (ใช้เมธอด Locator)
+  // 9. ตรวจสอบว่ามีสินค้าทั้ง 2 ชิ้นแสดงอยู่ (ใช้เมธอด Locator)
   await CheckoutPage.verifyCartItemCount(page, 2);
 
-  // 11. ตรวจสอบว่ามีราคารวมแสดง (ใช้เมธอด Locator)
+  // 10. ตรวจสอบว่ามีราคารวมแสดง (ใช้เมธอด Locator)
   await CheckoutPage.verifyCartSummaryVisible(page);
 });

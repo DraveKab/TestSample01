@@ -4,32 +4,29 @@ import { LoginPage } from '../resources/locator/LoginPage';
 import { ProductsPage } from '../resources/locator/ProductsPage';
 import { CartPage } from '../resources/locator/CartPage';
 import { userData, productSelector, url } from '../resources/demo/testdata/testData';
+import * as locator from '../resources/locator/index'; // <== เพิ่มบรรทัดนี้
 
 test('tc06: กรอกอักขระพิเศษใน First/Last Name และเลขถูกต้องใน ZIP Code แล้วระบบยอมให้เข้า Checkout', async ({ page }) => {
   // Step 1: เปิดเว็บไซต์และล็อกอิน
-  await test.step('1. เปิดเว็บไซต์และล็อกอิน', async () => {
-    await LoginPage.goto(page, url.base);
-    await LoginPage.login(page, userData.username, userData.password);
-  });
+  await page.goto(url.base);
+    await page.locator(locator.input_username).fill(userData.username);
+    await page.locator(locator.input_password).fill(userData.password);
+    await page.locator(locator.btn_login).click();
 
   // Step 2: เพิ่มสินค้าลงในตะกร้า
-  await test.step('2. เพิ่มสินค้าลงในตะกร้า', async () => {
-    await page.click(productSelector.tShirtRed);
-    await page.click('.shopping_cart_link'); // ไปที่หน้า Cart
-  });
+  await ProductsPage.addProductToCart(page, locator.btn_add_tShirtRed);
+  await ProductsPage.gotoCart(page);
+  await CartPage.verifyOnCartPage(page);
+
 
   // Step 3: คลิก Checkout
-  await test.step('3. คลิก Checkout', async () => {
-    await page.click('[data-test="checkout"]');
-  });
+  await page.locator(locator.btn_checkout).click();
+    await CheckoutPage.verifyOnCheckoutPage(page);
 
   // Step 4: กรอกข้อมูล First Name, Last Name ด้วยอักขระพิเศษ และ Postal Code ด้วยตัวเลขที่ถูกต้อง
-  await test.step('4. กรอกข้อมูล First Name, Last Name ด้วยอักขระพิเศษ และ Postal Code ด้วยตัวเลขที่ถูกต้อง', async () => {
-    const fields = CheckoutPage.getFields(page);
-    await fields.firstName.fill('@@@');
-    await fields.lastName.fill('###');
-    await fields.postalCode.fill('12345');
-  });
+    page.locator(locator.input_firstName).fill('@@@');
+      page.locator(locator.input_lastName).fill('###');
+      page.locator(locator.input_postalCode).fill('54321');
 
   // Step 5: คลิก Continue
   await test.step('5. คลิก Continue', async () => {

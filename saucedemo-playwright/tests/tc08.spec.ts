@@ -4,40 +4,40 @@ import { ProductsPage } from '../resources/locator/ProductsPage';
 import { CartPage } from '../resources/locator/CartPage';
 import { CheckoutPage } from '../resources/locator/CheckoutPage';
 import { userData, productSelector, url } from '../resources/demo/testdata/testData';
+import * as locator from '../resources/locator/index'; // <== เพิ่มบรรทัดนี้
 
 test('กรอกตัวพิมพ์ใหญ่ล้วนในทุกช่อง และระบบยังให้เข้า checkout ได้', async ({ page }) => {
-  // 1. เปิดเว็บ
-  await LoginPage.goto(page, url.base);
+  // 1. เปิดเว็บ และ Login
+  await page.goto(url.base);
+    await page.locator(locator.input_username).fill(userData.username);
+    await page.locator(locator.input_password).fill(userData.password);
+    await page.locator(locator.btn_login).click();
 
-  // 2. Login
-  await LoginPage.login(page, userData.username, userData.password);
+  // 2. Add to cart สินค้า T-Shirt
+  await ProductsPage.addProductToCart(page, locator.btn_add_tShirtRed);
 
-  // 3. Add to cart สินค้า T-Shirt
-  await ProductsPage.addProductToCart(page, productSelector.tShirtRed);
-
-  // 4. เข้า cart
+  // 3. เข้า cart
   await ProductsPage.gotoCart(page);
   await CartPage.verifyOnCartPage(page);
 
-  // 5. คลิก CHECKOUT
-  await CartPage.clickCheckout(page);
-  await CheckoutPage.verifyOnCheckoutPage(page);
+  // 4. คลิก CHECKOUT
+  await page.locator(locator.btn_checkout).click();
+      await CheckoutPage.verifyOnCheckoutPage(page);
 
-  // 6. กรอกข้อมูลแบบพิมพ์ใหญ่ล้วน
-  const checkoutFields = CheckoutPage.getFields(page);
-  await checkoutFields.firstName.fill('JOHN');
-  await checkoutFields.lastName.fill('DOE');
-  await checkoutFields.postalCode.fill('12345');
+  // 5. กรอกข้อมูลแบบพิมพ์ใหญ่ล้วน
+  page.locator(locator.input_firstName).fill('JOHN');
+  page.locator(locator.input_lastName).fill('DOE');
+  page.locator(locator.input_postalCode).fill('12345');
 
-  // 7. คลิก Continue
+  // 6. คลิก Continue
   await CheckoutPage.clickContinue(page);
 
-  // 8. ตรวจสอบว่า ระบบยังยอมให้เข้าสู่หน้า Checkout Overview
+  // 7. ตรวจสอบว่า ระบบยังยอมให้เข้าสู่หน้า Checkout Overview
   await CheckoutPage.verifyOnCheckoutOverviewPage(page);
 
-  // 9. ตรวจสอบว่าไม่มี Error box แสดงขึ้น
+  // 8. ตรวจสอบว่าไม่มี Error box แสดงขึ้น
   await CheckoutPage.verifyNoErrorMessage(page);
 
-  // 10. ตรวจสอบว่าสินค้าและราคารวมยังแสดงอยู่
+  // 9. ตรวจสอบว่าสินค้าและราคารวมยังแสดงอยู่
   await CheckoutPage.verifyCartSummaryVisible(page);
 });
