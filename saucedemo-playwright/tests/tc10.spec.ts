@@ -8,10 +8,12 @@ import * as locator from '../resources/locator/index'; // <== เพิ่มบ
 
 test('กรอกชื่อผสม (อังกฤษ+ไทย) และระบบยังให้ผ่านหน้า Checkout', async ({ page }) => {
   // 1. เข้าเว็บไซต์
-  await page.goto(url.base);
-    await page.locator(locator.input_username).fill(userData.username);
-    await page.locator(locator.input_password).fill(userData.password);
-    await page.locator(locator.btn_login).click();
+ await page.goto('https://www.saucedemo.com/');
+await page.locator('[data-test="username"]').fill('standard_user');
+await page.locator('[data-test="password"]').fill('secret_sauce');
+await page.locator('[data-test="login-button"]').click();
+
+
 
   // 2. เพิ่มสินค้าเข้าตะกร้า
   await ProductsPage.addProductToCart(page, locator.btn_add_tShirtRed);
@@ -25,9 +27,9 @@ test('กรอกชื่อผสม (อังกฤษ+ไทย) และ
       await CheckoutPage.verifyOnCheckoutPage(page);
 
   // 5. กรอกชื่อผสม: อังกฤษ + ไทย + กรอก Postal Code ที่ถูกต้อง
-  page.locator(locator.input_firstName).fill('aaa');    // อังกฤษ
-  page.locator(locator.input_lastName).fill('กกก');     // ไทย
-  page.locator(locator.input_postalCode).fill('12345'); // ตัวเลขที่ถูกต้อง
+   await page.locator(locator.input_firstName).fill('aaa');    // อังกฤษ
+   await page.locator(locator.input_lastName).fill('กกก');     // ไทย
+   await page.locator(locator.input_postalCode).fill('12345'); // ตัวเลขที่ถูกต้อง
 
   // 6. คลิก Continue
   await CheckoutPage.clickContinue(page);

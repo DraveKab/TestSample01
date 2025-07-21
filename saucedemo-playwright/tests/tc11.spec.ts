@@ -8,10 +8,12 @@ import * as locator from '../resources/locator/index'; // <== เพิ่มบ
 
 test('กรอก First Name และ Last Name เหมือนกัน แล้ว Checkout ได้สำเร็จ', async ({ page }) => {
   // 1. เข้าเว็บไซต์
-  await page.goto(url.base);
-    await page.locator(locator.input_username).fill(userData.username);
-    await page.locator(locator.input_password).fill(userData.password);
-    await page.locator(locator.btn_login).click();
+await page.goto('https://www.saucedemo.com/');
+await page.locator('[data-test="username"]').fill('standard_user');
+await page.locator('[data-test="password"]').fill('secret_sauce');
+await page.locator('[data-test="login-button"]').click();
+
+
 
   // 2. เพิ่มสินค้า T-Shirt ลงในตะกร้า
   await ProductsPage.addProductToCart(page, locator.btn_add_tShirtRed);
@@ -25,9 +27,9 @@ test('กรอก First Name และ Last Name เหมือนกัน �
       await CheckoutPage.verifyOnCheckoutPage(page);
 
   // 5. กรอก First Name และ Last Name เหมือนกัน พร้อมกรอก Postal Code ที่ถูกต้อง
-  page.locator(locator.input_firstName).fill('John');
-  page.locator(locator.input_lastName).fill('John');
-  page.locator(locator.input_postalCode).fill('12345');
+  await page.locator(locator.input_firstName).fill('John');
+  await page.locator(locator.input_lastName).fill('John');
+  await page.locator(locator.input_postalCode).fill('12345');
 
   // 6. คลิกปุ่ม Continue
   await CheckoutPage.clickContinue(page);

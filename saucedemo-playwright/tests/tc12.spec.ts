@@ -8,10 +8,12 @@ import * as locator from '../resources/locator/index'; // <== เพิ่มบ
 
 test('เพิ่มสินค้า 2 ชิ้นแล้วเข้าสู่หน้า Checkout สำเร็จ พร้อมแสดงสินค้า', async ({ page }) => {
   // 1. เข้าเว็บไซต์
-  await page.goto(url.base);
-    await page.locator(locator.input_username).fill(userData.username);
-    await page.locator(locator.input_password).fill(userData.password);
-    await page.locator(locator.btn_login).click();
+await page.goto('https://www.saucedemo.com/');
+await page.locator('[data-test="username"]').fill('standard_user');
+await page.locator('[data-test="password"]').fill('secret_sauce');
+await page.locator('[data-test="login-button"]').click();
+
+
 
   // 2. เพิ่มสินค้า 2 ชิ้น
   await ProductsPage.addProductToCart(page, locator.btn_add_tShirtRed);
@@ -26,9 +28,9 @@ test('เพิ่มสินค้า 2 ชิ้นแล้วเข้า�
       await CheckoutPage.verifyOnCheckoutPage(page);
 
   // 5. กรอกข้อมูลลูกค้า
-  page.locator(locator.input_firstName).fill('John');
-  page.locator(locator.input_lastName).fill('Doe');
-  page.locator(locator.input_postalCode).fill('12345');
+  await page.locator(locator.input_firstName).fill('John');
+  await page.locator(locator.input_lastName).fill('Doe');
+  await page.locator(locator.input_postalCode).fill('12345');
 
   // 6. คลิก Continue
   await CheckoutPage.clickContinue(page);

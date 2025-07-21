@@ -8,10 +8,12 @@ import * as locator from '../resources/locator/index'; // <== เพิ่มบ
 
 test('กรอกตัวพิมพ์ใหญ่ล้วนในทุกช่อง และระบบยังให้เข้า checkout ได้', async ({ page }) => {
   // 1. เปิดเว็บ และ Login
-  await page.goto(url.base);
-    await page.locator(locator.input_username).fill(userData.username);
-    await page.locator(locator.input_password).fill(userData.password);
-    await page.locator(locator.btn_login).click();
+ await page.goto('https://www.saucedemo.com/');
+await page.locator('[data-test="username"]').fill('standard_user');
+await page.locator('[data-test="password"]').fill('secret_sauce');
+await page.locator('[data-test="login-button"]').click();
+
+
 
   // 2. Add to cart สินค้า T-Shirt
   await ProductsPage.addProductToCart(page, locator.btn_add_tShirtRed);
@@ -21,13 +23,13 @@ test('กรอกตัวพิมพ์ใหญ่ล้วนในทุ�
   await CartPage.verifyOnCartPage(page);
 
   // 4. คลิก CHECKOUT
-  await page.locator(locator.btn_checkout).click();
+   await page.locator(locator.btn_checkout).click();
       await CheckoutPage.verifyOnCheckoutPage(page);
 
   // 5. กรอกข้อมูลแบบพิมพ์ใหญ่ล้วน
-  page.locator(locator.input_firstName).fill('JOHN');
-  page.locator(locator.input_lastName).fill('DOE');
-  page.locator(locator.input_postalCode).fill('12345');
+   await page.locator(locator.input_firstName).fill('JOHN');
+   await page.locator(locator.input_lastName).fill('DOE');
+   await page.locator(locator.input_postalCode).fill('12345');
 
   // 6. คลิก Continue
   await CheckoutPage.clickContinue(page);

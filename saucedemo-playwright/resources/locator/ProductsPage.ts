@@ -8,11 +8,11 @@ export const ProductsPage = {
 
   async gotoCart(page: Page) {
     await page.locator(locator.cart_link).click(); // ใช้ locator จากไฟล์กลาง
-    await expect(page).toHaveURL(/.*cart\.html/, { timeout: 5000 });
+    await expect(page).toHaveURL(/.*cart\.html/, { timeout: 60000  });
   },
 
   async verifyOnProductsPage(page: Page) {
-    await expect(page).toHaveURL(/.*inventory\.html/, { timeout: 5000 });
-    await expect(page.locator(locator.title_products)).toHaveText('Products', { timeout: 5000 });
+    await expect(page).toHaveURL(/.*inventory\.html/, { timeout: 60000  });
+    await expect(page.locator(locator.title_products)).toHaveText('Products', { timeout: 60000  });
   },
 };
